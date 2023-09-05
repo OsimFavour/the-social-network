@@ -1,6 +1,4 @@
 {% extends 'landing/base.html' %}
-{% load crispy_forms_tags %}
-
 
 {% block content %}
     <div class="container">
@@ -12,20 +10,14 @@
         </div>
 
 
-         
-        <div class="row justify-content-center mt-3">
-            <div class="col-md-5 col-sm-12 border-bottom">
-                <h5>Update Your Post!</h5>
-            </div>
-        </div>
-
         <div class="row justify-content-center mt-3">
             <div class="col-md-5 col-sm-12 border-bottom">
                 <form action="" method="POST">
                     {% csrf_token %}
-                    {{ form|crispy }}
+                    <h5>Are You Sure?</h5>
+                    <p>You are about to delete this comment, this cannot be undone.</p>
                     <div class="d-grid gap-2">
-                        <button class="btn btn-success mt-3">Submit</button>
+                        <button class="btn btn-danger mt-3">Delete</button>
                     </div>
                 </form>
             </div>

@@ -7,7 +7,7 @@
 
         <div class="row mt-5">
             <div class="col-md-5 col-sm-6">
-                <a href="{% url 'post-detail' object.pk %}">Back to Post</a>
+                <a href="{% url 'profile' object.pk %}">Back to Profile</a>
             </div>
         </div>
 
@@ -15,13 +15,13 @@
          
         <div class="row justify-content-center mt-3">
             <div class="col-md-5 col-sm-12 border-bottom">
-                <h5>Update Your Post!</h5>
+                <h5>Update Your Profile!</h5>
             </div>
         </div>
 
         <div class="row justify-content-center mt-3">
             <div class="col-md-5 col-sm-12 border-bottom">
-                <form action="" method="POST">
+                <form action="" method="POST" enctype="multipart/form-data">
                     {% csrf_token %}
                     {{ form|crispy }}
                     <div class="d-grid gap-2">
