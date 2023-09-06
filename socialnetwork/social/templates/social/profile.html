@@ -42,25 +42,26 @@
                 {% if profile.bio %}
                     <p>{{ profile.bio }}</p>
                 {% endif %}
-            </div>
 
-            <div class="mb-3">
-                <p>Followers: {{ number_of_followers }}</p>
-                {% if user == request.user %}
-                {% else %}
-                    <!-- Logic for following users and unfollowing users too -->
-                    {% if is_following %}
-                        <form action="{% url 'remove-follower' profile.pk %}" method="post">
-                            {% csrf_token %}
-                            <button class="btn btn-outline-danger" type="submit">Unfollow</button>
-                        </form>
+                <div class="mb-3">
+                    <p>Followers: {{ number_of_followers }}</p>
+                    {% if user == request.user %}
                     {% else %}
-                        <form action="{% url 'add-follower' profile.pk %}" method="post">
-                            {% csrf_token %}
-                            <button class="btn btn-outline-success" type="submit">Follow</button>
-                        </form>
+                        <!-- Logic for following users and unfollowing users too -->
+                        {% if is_following %}
+                            <form action="{% url 'remove-follower' profile.pk %}" method="post">
+                                {% csrf_token %}
+                                <button class="btn btn-outline-danger" type="submit">Unfollow</button>
+                            </form>
+                        {% else %}
+                            <form action="{% url 'add-follower' profile.pk %}" method="post">
+                                {% csrf_token %}
+                                <button class="btn btn-outline-success" type="submit">Follow</button>
+                            </form>
+                        {% endif %}
                     {% endif %}
-                {% endif %}
+                </div>
+
             </div>
 
         </div>
@@ -74,6 +75,25 @@
                         <p>{{ post.body }}</p>
                         <a href="{% url 'post-detail' post.pk %}" class="stretched-link "></a>
                     </div>
+
+                    <div class="d-flex flex-row">
+                        <form action="{% url 'like' post.pk %}" method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ request.path }}">
+                            <button style="background-color: transparent; border: none; box-shadow: none;" type="submit">
+                                <i class="far fa-thumbs-up"> <span>{{ post.likes.all.count }}</span></i>
+                            </button>
+                        </form>
+
+                        <form action="{% url 'dislike' post.pk %}" method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ request.path }}">
+                            <button style="background-color: transparent; border: none; box-shadow: none;" type="submit">
+                                <i class="far fa-thumbs-down"> <span>{{ post.dislikes.all.count }}</span></i>
+                            </button>
+                        </form>
+                    </div>
+                    
                 </div>
             </div>
         {% endfor %}

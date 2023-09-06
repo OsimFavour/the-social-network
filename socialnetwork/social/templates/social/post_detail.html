@@ -7,7 +7,7 @@
 
         <div class="row mt-5">
             <div class="col-md-5 col-sm-6">
-                <a href="{% url 'post-list' %}">Back to Feed</a>
+                <a href="{% url 'post-list' %}" class="btn btn-light">Back to Feed</a>
             </div>
         </div>
 
@@ -22,6 +22,25 @@
                     {% endif %}
                 </p>
                 <p>{{ post.body }}</p>
+
+                <div class="d-flex flex-row">
+                    <form action="{% url 'like' post.pk %}" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.path }}">
+                        <button style="background-color: transparent; border: none; box-shadow: none;" type="submit">
+                            <i class="far fa-thumbs-up"> <span>{{ post.likes.all.count }}</span></i>
+                        </button>
+                    </form>
+
+                    <form action="{% url 'dislike' post.pk %}" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.path }}">
+                        <button style="background-color: transparent; border: none; box-shadow: none;" type="submit">
+                            <i class="far fa-thumbs-down"> <span>{{ post.dislikes.all.count }}</span></i>
+                        </button>
+                    </form>
+                </div>
+
             </div>
         </div>
 
