@@ -12,12 +12,30 @@ class Post(models.Model):
     likes = models.ManyToManyField(User, blank=True, related_name='likes')
     dislikes = models.ManyToManyField(User, blank=True, related_name='dislikes')
 
+    # the related name as + taskes away the reverse mapping, so we can't
+    # necessarily get the children from this field. Instead we'll create
+    # a separate property to handle that
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True, related_name='+')
+
+    # A property method allows us to access a function within the 
+    # actual template itself
+    @property
+    def children(self):
+        return Comment.objects.filter(parent=self).order_by('-created_on').all()
+    
+    @property
+    def is_parent(self):
+        if self.parent is None:
+            return True
+        return False
 
 class Comment(models.Model):
     comment = models.TextField()
     created_on = models.DateTimeField(default=timezone.now)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     post = models.ForeignKey('Post', on_delete=models.CASCADE)
+    likes = models.ManyToManyField(User, blank=True, related_name='comment_likes')
+    dislikes = models.ManyToManyField(User, blank=True, related_name='comment_dislikes')
 
 
 # create a foreignkey relationship between the user profile model

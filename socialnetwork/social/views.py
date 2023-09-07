@@ -11,7 +11,11 @@ from django.views.generic.edit import UpdateView, DeleteView
 
 class PostListView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
-        posts = Post.objects.all().order_by('-created_on')
+        logged_in_user = request.user
+        # posts = Post.objects.all().order_by('-created_on')
+        posts = Post.objects.filter(
+            author__profile__followers__in=[logged_in_user.id]
+        ).order_by('-created_on')
         form = PostForm()
         context = {
             'post_list': posts,
@@ -231,6 +235,66 @@ class DisLike(LoginRequiredMixin, View):
         return HttpResponseRedirect(next)
     
 
+class AddCommentLike(LoginRequiredMixin, View):
+    def post(self, request, pk, *args, **kwargs):
+        comment = Comment.objects.get(pk=pk)
+
+        is_dislike = False
+        for dislike in comment.dislikes.all():
+            if dislike == request.user:
+                is_dislike = True
+                break
+        
+        if is_dislike:
+            comment.dislikes.remove(request.user)
+
+        is_like = False
+        for like in comment.likes.all():
+            if like == request.user:
+                is_like = True
+                break
+
+        if not is_like:
+            comment.likes.add(request.user)
+
+        if is_like:
+            comment.likes.remove(request.user)
+        next = request.POST.get('next', '/')
+        print(next)
+        return HttpResponseRedirect(next)
+
+
+class AddCommentDisLike(LoginRequiredMixin, View):
+    def post(self, request, pk, *args, **kwargs):
+        comment = Comment.objects.get(pk=pk)
+        print(comment)
+
+        is_like = False
+        for like in comment.likes.all():
+            if like == request.user:
+                is_like = True
+                break
+
+        if is_like:
+            comment.likes.remove(request.user)
+
+        is_dislike = False
+        for dislike in comment.dislikes.all():
+            if dislike == request.user:
+                is_dislike = True
+                break
+
+        if not is_dislike:
+            comment.dislikes.add(request.user)
+
+        if is_dislike:
+            comment.dislikes.remove(request.user)
+
+        next = request.POST.get('next', '/')
+        print(next)
+        return HttpResponseRedirect(next)
+    
+
 class UserSearch(View):
     def get(self, request, *args, **kwargs):
         query = self.request.GET.get('query')
@@ -243,3 +307,16 @@ class UserSearch(View):
             'profile_list': profile_list
         }
         return render(request, 'social/search.html', context)
+
+
+class ListFollowers(View):
+    def get(self, request, pk, *args, **kwargs):
+        profile = UserProfile.objects.get(pk=pk)
+        followers = profile.followers.all()
+
+        context = {
+            'profile': profile,
+            'followers': followers,
+        }
+
+        return render(request, 'social/followers_list.html', context)
