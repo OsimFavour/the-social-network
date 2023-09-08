@@ -12,7 +12,16 @@ class Post(models.Model):
     likes = models.ManyToManyField(User, blank=True, related_name='likes')
     dislikes = models.ManyToManyField(User, blank=True, related_name='dislikes')
 
-    # the related name as + taskes away the reverse mapping, so we can't
+
+class Comment(models.Model):
+    comment = models.TextField()
+    created_on = models.DateTimeField(default=timezone.now)
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    post = models.ForeignKey('Post', on_delete=models.CASCADE)
+    likes = models.ManyToManyField(User, blank=True, related_name='comment_likes')
+    dislikes = models.ManyToManyField(User, blank=True, related_name='comment_dislikes')
+
+    # the related name as + takes away the reverse mapping, so we can't
     # necessarily get the children from this field. Instead we'll create
     # a separate property to handle that
     parent = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True, related_name='+')
@@ -28,15 +37,7 @@ class Post(models.Model):
         if self.parent is None:
             return True
         return False
-
-class Comment(models.Model):
-    comment = models.TextField()
-    created_on = models.DateTimeField(default=timezone.now)
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
-    post = models.ForeignKey('Post', on_delete=models.CASCADE)
-    likes = models.ManyToManyField(User, blank=True, related_name='comment_likes')
-    dislikes = models.ManyToManyField(User, blank=True, related_name='comment_dislikes')
-
+    
 
 # create a foreignkey relationship between the user profile model
 # and the user model, one user can have one profile and one 
@@ -67,3 +68,14 @@ def create_user_profile(sender, instance, created, **kwargs):
 def save_user_profile(sender, instance, **kwargs):
     """Save the user profile with django signals"""
     instance.profile.save()
+
+
+class Notification(models.Model):
+    # 1 = Like, 2 = Comment, 3 = Follow
+    notification_type = models.IntegerField()
+    to_user = models.ForeignKey(User, related_name="notification_to", on_delete=models.CASCADE, null=True)
+    from_user = models.ForeignKey(User, related_name="notification_from", on_delete=models.CASCADE, null=True)
+    post = models.ForeignKey('Post', on_delete=models.CASCADE, related_name='+', blank=True, null=True)
+    comment = models.ForeignKey('Comment', on_delete=models.CASCADE, related_name="+", blank=True, null=True)
+    date = models.DateTimeField(default=timezone.now)
+    user_has_seen = models.BooleanField(default=False)

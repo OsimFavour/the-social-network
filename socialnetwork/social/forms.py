@@ -24,7 +24,7 @@ class CommentForm(forms.ModelForm):
             'placeholder': 'Comment Here...'
         })
     )
-
+ 
     class Meta:
         model = Comment
         fields = ['comment']
