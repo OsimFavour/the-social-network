@@ -20,5 +20,5 @@ function showNotifications() {
     }
     else {
         container.classList.add('d-none')
-}
+    }
 }
