@@ -382,7 +382,7 @@ class RemoveNotification(View):
         notification.user_has_seen = True
         notification.save()
 
-        HttpResponse('Success', content_type='text/plain')
+        return HttpResponse('Success', content_type='text/plain')
 
 
         
