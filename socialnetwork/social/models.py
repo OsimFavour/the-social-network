@@ -12,6 +12,10 @@ class Post(models.Model):
     likes = models.ManyToManyField(User, blank=True, related_name='likes')
     dislikes = models.ManyToManyField(User, blank=True, related_name='dislikes')
 
+    def __str__(self):
+        return f"{self.author.username} Post Page"
+
+
 
 class Comment(models.Model):
     comment = models.TextField()
@@ -50,6 +54,9 @@ class UserProfile(models.Model):
     location = models.CharField(max_length=100, blank=True, null=True)
     picture = models.ImageField(upload_to='uploads/profile_pictures', default='uploads/profile_pictures/default.png')
     followers = models.ManyToManyField(User, blank=True, related_name='followers')
+
+    def __str__(self):
+        return f"{self.user.username} Profile"
 
 # All we need to use django signals
 # sender -> User
