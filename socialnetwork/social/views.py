@@ -1,11 +1,12 @@
 from django.shortcuts import render, redirect
 from django.db.models import Q
 from django.urls import reverse_lazy
+from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
 from django.views import View
-from .models import Post, Comment, UserProfile, Notification
-from .forms import PostForm, CommentForm
+from .models import Post, Comment, UserProfile, Notification, ThreadModel
+from .forms import PostForm, CommentForm, ThreadForm, MessageForm
 from django.views.generic.edit import UpdateView, DeleteView
 
 
@@ -26,8 +27,17 @@ class PostListView(LoginRequiredMixin, View):
     
 
     def post(self, request, *args, **kwargs):
-        posts = Post.objects.all().order_by('-created_on')
-        form = PostForm(request.POST)
+        logged_in_user = request.user
+        # posts = Post.objects.all().order_by('-created_on')
+        posts = Post.objects.filter(
+            author__profile__followers__in=[logged_in_user.id]
+        ).order_by('-created_on')
+
+        # @param {string} request.POST - the body of the request 
+        # into the constructor
+        # @param {string} request.FILES - pass in the files that 
+        # we added into the form to be whatever image file we uploaded
+        form = PostForm(request.POST, request.FILES)
 
         if form.is_valid():
             new_post = form.save(commit=False)
@@ -385,4 +395,57 @@ class RemoveNotification(View):
         return HttpResponse('Success', content_type='text/plain')
 
 
-        
+class ListThreads(View):
+    def get(self, request, *args, **kwargs):
+        threads = ThreadModel.objects.filter(Q(user=request.user) | Q(receiver=request.user))
+
+        context = {
+            'threads': threads
+        }
+        return render(request, 'social/inbox.html', context)
+    
+
+class CreateThread(View):
+    def get(self, request, *args, **kwargs):
+        form = ThreadForm()
+
+        context = {
+            'form': form
+        }
+
+        return render(request, 'social/create_thread.html', context)
+    
+    def post(self, request, *args, **kwargs):
+        form = ThreadForm(request.POST)
+
+        # get the username from the Threadform
+        username = request.POST.get('username')
+
+        try:
+            receiver = User.objects.get(username=username)
+            if ThreadModel.objects.filter(user=request.user, receiver=receiver).exists():
+                threadlist = ThreadModel.objects.filter(user=request.user, receiver=receiver)
+                print(f'Threadlist: {threadlist}')
+                thread = ThreadModel.objects.filter(user=request.user, receiver=receiver)[0]
+                print(f'Thread: {thread}\nThread User: {thread.user}\nThread Receiver: {thread.receiver}')
+                return redirect('thread', pk=thread.pk)
+            elif ThreadModel.objects.filter(user=receiver, receiver=request.user).exists():
+                thread = ThreadModel.objects.filter(user=receiver, receiver=request.user)[0]
+                return redirect('thread', pk=thread.pk)
+            
+            if form.is_valid():
+                thread = ThreadModel(
+                    user=request.user,
+                    receiver=receiver
+                )
+                thread.save()
+
+                return redirect('thread', pk=thread.pk)
+        except:
+            return redirect('create-thread')
+
+
+class ThreadView(View):
+    def get(self, request, pk, *args, **kwargs):
+        form = MessageForm()
+        thread = ThreadModel.objects.get(pk=pk)

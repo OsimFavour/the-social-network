@@ -26,6 +26,13 @@ function showNotifications() {
 
 // using jQuery
 function getCookie(name) {
+    /**
+     * Retrieve the CSRF token from a cookie.
+     *
+     * @param {string} name - The name of the cookie.
+     * @returns {string} The value of the cookie.
+     * 
+     */
     var cookieValue = null;
     if (document.cookie && document.cookie != '') {
         var cookies = document.cookie.split(';');
@@ -51,14 +58,6 @@ function getCookie(name) {
  */
 
 function removeNotification(removeNotificationURL, redirectURL) {
-
-    /**
-     * Retrieve the CSRF token from a cookie.
-     *
-     * @param {string} name - The name of the cookie.
-     * @returns {string} The value of the cookie.
-     * 
-     */
 
     // Retrieve the CSRF token from the cookie.
     var csrftoken = getCookie('csrftoken'); 
