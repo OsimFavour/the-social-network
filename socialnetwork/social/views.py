@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
 from django.views import View
-from .models import Post, Comment, UserProfile, Notification, ThreadModel
+from .models import Post, Comment, UserProfile, Notification, ThreadModel, MessageModel
 from .forms import PostForm, CommentForm, ThreadForm, MessageForm
 from django.views.generic.edit import UpdateView, DeleteView
 
@@ -449,3 +449,11 @@ class ThreadView(View):
     def get(self, request, pk, *args, **kwargs):
         form = MessageForm()
         thread = ThreadModel.objects.get(pk=pk)
+        message_list = MessageModel.objects.filter(thread__pk__contains=pk)
+        context = {
+            'thread': thread,
+            'form': form,
+            'message_list': message_list
+        }
+
+        return render(request, 'social/thread.html', context)
