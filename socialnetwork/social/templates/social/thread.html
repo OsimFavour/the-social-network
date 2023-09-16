@@ -2,7 +2,7 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
-    <div class="container">
+    <div class="container mb-5">
 
         <div class="row">
             <div class="card col-md-12 mt-5 p-3 shadow-sm">
@@ -23,20 +23,45 @@
         {% endif %}
 
         {% for message in message_list %}
-        <div class="row">
-            <div class="col-md-12 my-1">
+            <div class="row">
                 {% if message.sender_user == request.user %}
-                    <div class="sent-message my-3">
-                        <p>{{ message.body }}</p>
+                    <div class="col-md-12 my-1">
+                        {% if message.image %}
+                            <div>
+                                <img src="{{ message.image.url }}" alt="" class="message-image">
+                            </div>
+                        {% endif %}
+                        <div class="sent-message my-3">
+                            <p>{{ message.body }}</p>
+                        </div>
                     </div>
                 {% elif message.receiver_user == request.user %}
-                    <div class="received-message my-3">
-                        <p>{{ message.body }}</p>
+                    <div class="col-md-12 my-3">
+                        {% if message.image %}
+                            <div class="message-receiver-container ms-auto">
+                                <img src="{{ message.image.url }}" alt="" class="message-image">
+                            </div>
+                        {% endif %}
+                        <div class="received-message my-3">
+                            <p>{{ message.body }}</p>
+                        </div>
                     </div>
                 {% endif %}
             </div>
-        </div>
         {% endfor %}
+
+        <div class="row">
+            <div class="card col-md-12 p-3 shadow-sm">
+                <form action="{% url 'create-message' thread.pk %}" method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+
+                    <div class="d-grid gap-2 mt-3">
+                        <button type="submit" class="btn btn-light">Send Message</button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
     </div>
 {% endblock content %}

@@ -7,15 +7,50 @@ from django.dispatch import receiver
 
 class Post(models.Model):
     body = models.TextField()
-    image = models.ImageField(upload_to='uploads/post_photos', blank=True, null=True)
+    shared_body = models.TextField(blank=True, null=True)
+    image = models.ManyToManyField('Image', blank=True)
     created_on = models.DateTimeField(default=timezone.now)
+    shared_on = models.DateTimeField(blank=True, null=True)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
+    shared_user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='+')
     likes = models.ManyToManyField(User, blank=True, related_name='likes')
     dislikes = models.ManyToManyField(User, blank=True, related_name='dislikes')
+    tags = models.ManyToManyField('Tag', blank=True)
 
+    def create_tags(self):
+        for word in self.body.split():
+            if word[0] == '#':
+                # Confirm if word has an hashtag on it
+                tag = Tag.objects.filter(name=word[1:]).first()
+                if tag:
+                    # If tag is found, add it
+                    self.tags.add(tag.pk)
+                else:
+                    # Else if the tag isn't found, create it
+                    tag = Tag(name=word[1:])
+                    tag.save()
+                    # The add method helps us add an object to our many to many field
+                    self.tags.add(tag.pk)
+                self.save()
+
+        # For Shared Posts
+        if self.shared_body:
+            for word in self.shared_body.split():
+                if word[0] == '#':
+                    tag = Tag.objects.filter(name=word[1:]).first()
+                    if tag:
+                        self.tags.add(tag.pk)
+                    else:
+                        tag = Tag(name=word[1:])
+                        tag.save()
+                        self.tags.add(tag.pk)
+                    self.save()
+
+    class Meta:
+        ordering = ['-created_on', '-shared_on']
+        
     def __str__(self):
         return f"{self.author.username} Post Page"
-
 
 
 class Comment(models.Model):
@@ -30,6 +65,24 @@ class Comment(models.Model):
     # necessarily get the children from this field. Instead we'll create
     # a separate property to handle that
     parent = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True, related_name='+')
+
+    tags = models.ManyToManyField('Tag', blank=True)
+
+    def create_tags(self):
+        for word in self.comment.split():
+            if word[0] == '#':
+                # Confirm if word has an hashtag on it
+                tag = Tag.objects.filter(name=word[1:]).first()
+                if tag:
+                    # If tag is found, add it
+                    self.tags.add(tag.pk)
+                else:
+                    # Else if the tag isn't found, create it
+                    tag = Tag(name=word[1:])
+                    tag.save()
+                    # The add method helps us add an object to our many to many field
+                    self.tags.add(tag.pk)
+                self.save()
 
     # A property method allows us to access a function within the 
     # actual template itself
@@ -79,12 +132,13 @@ def save_user_profile(sender, instance, **kwargs):
 
 
 class Notification(models.Model):
-    # 1 = Like, 2 = Comment, 3 = Follow
+    # 1 = Like, 2 = Comment, 3 = Follow, 4 = DM
     notification_type = models.IntegerField()
     to_user = models.ForeignKey(User, related_name="notification_to", on_delete=models.CASCADE, null=True)
     from_user = models.ForeignKey(User, related_name="notification_from", on_delete=models.CASCADE, null=True)
     post = models.ForeignKey('Post', on_delete=models.CASCADE, related_name='+', blank=True, null=True)
     comment = models.ForeignKey('Comment', on_delete=models.CASCADE, related_name="+", blank=True, null=True)
+    thread = models.ForeignKey('ThreadModel', on_delete=models.CASCADE, related_name="+", blank=True, null=True)
     date = models.DateTimeField(default=timezone.now)
     user_has_seen = models.BooleanField(default=False)
 
@@ -93,6 +147,9 @@ class ThreadModel(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='+')
     receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='+')
 
+    def __str__(self):
+        return f"{self.user.username} & {self.receiver.username} Thread Model"
+    
 class MessageModel(models.Model):
     thread = models.ForeignKey('ThreadModel', related_name='+', on_delete=models.CASCADE, blank=True, null= True)
     sender_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='+')
@@ -101,3 +158,20 @@ class MessageModel(models.Model):
     image = models.ImageField(upload_to='uploads/message_photos', blank=True, null=True)
     date = models.DateTimeField(default=timezone.now)
     is_read = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Message by {self.sender_user.username} & {self.receiver_user.username}"
+
+
+class Image(models.Model):
+    """We can store as many Image objects created with this class 
+       inside our model Post in the many-to-many image method
+    """
+    image = models.ImageField(upload_to='uploads/post_photos', blank=True, null=True)
+
+
+class Tag(models.Model):
+    name = models.CharField(max_length=255)                           
+
+    def __str__(self):
+        return f"{self.name}"

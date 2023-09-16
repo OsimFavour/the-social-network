@@ -12,6 +12,20 @@ function commentReplyToggle(parent_id) {
 }
 
 
+function shareToggle(parent_id) {
+    console.log(parent_id);
+
+    const row = document.getElementById(parent_id);
+
+    if (row.classList.contains('d-none')) {
+        row.classList.remove('d-none');
+    }
+    else {
+        row.classList.add('d-none')
+    }
+}
+
+
 function showNotifications() {
     const container = document.getElementById('notification-container')
 
@@ -87,3 +101,61 @@ function removeNotification(removeNotificationURL, redirectURL) {
     // Send the DELETE request.
     xmlhttp.send();
 }
+
+
+function formatTags() {
+    const elements = document.getElementsByClassName('body');
+    // loop through the elements
+    for (let i = 0; i < elements.length; i++) {
+        // the elements variable is a div tag. 
+        // Get the first child tag from that div tag which is a 'p' tag
+        // Get the actual text from that 'p' tag
+        let bodyText = elements[i].children[0].innerText;
+        console.log('Original Text:', bodyText);
+        // split the text by the spaces to get all the words
+        let words = bodyText.split(' ');
+        console.log('Words:', words);
+        // loop through all the words to see if there is a tag
+        for (let j = 0; j < words.length; j++) {
+            // Check for a word that has a hashtag and replace it
+            if (words[j][0] === '#') {
+                // ${} -> To insert the variable within a text,
+                // Like an f-string in python.
+                let replacedText = bodyText.replace(/\s\#(.*?)(\s|$)/g, ` <a href="/social/explore?query=${words[j].substring(1)}">${words[j]}</a>`);
+                elements[i].innerHTML = replacedText;
+            }
+        } 
+    }
+}
+
+// function formatTags() {
+//     const elements = document.getElementsById('body');
+//     // loop through the elements
+//     for (let i = 0; i < elements.length; i++) {
+//         // the elements variable is a div tag. 
+//         // Get the first child tag from that div tag which is a 'p' tag
+//         // Get the actual text from that 'p' tag
+//         let bodyText = elements[i].children[0].innerText;
+//         // split the text by the spaces to get all the words
+//         let words = bodyText.split(' ');
+//         let replacedText = bodyText; // Initialize with the original text
+
+//         // loop through all the words to see if there is a tag
+//         for (let j = 0; j < words.length; j++) {
+//             // Check for a word that has a hashtag and replace it
+//             if (words[j][0] === '#') {
+//                 // ${} -> To insert the variable within a text,
+//                 // Like an f-string in python.
+//                 replacedText = replacedText.replace(/\s\#(.*?)(\s|$)/g, `<a href="#">${words[j]}</a>`);
+//             }
+//         } 
+
+//         // Assign the updated HTML content back to the element
+//         elements[i].innerHTML = replacedText;
+//     }
+// }
+
+formatTags();
+
+
+// formatTags();

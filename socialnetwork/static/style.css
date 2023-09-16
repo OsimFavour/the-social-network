@@ -99,3 +99,49 @@
 .inbox-icon:hover {
     transition: 0.5s;
 } 
+
+.empty-text {
+    color: #777;
+    font-size: 1.5rem;
+    text-align: center;
+}
+
+.sent-message {
+    background-color: #f3f3f3;
+    border-radius: 30px;
+    padding: 10px 25px;
+    width: 35%;
+}
+
+.received-message {
+    background-color: rgb(1, 196, 255);
+    color: #fff;
+    border-radius: 30px;
+    padding: 10px 25px;
+    width: 35%;
+    float: right;
+}
+
+.message-receiver-container {
+    margin-left: auto;
+    margin-right: 0;
+
+}
+
+.message-image {
+    border-radius: 10px;
+    max-width: 35%;
+    height: auto;
+}
+
+.inbox-icon {
+    margin-right: 15px;
+}
+
+.share-btn {
+	cursor: pointer;
+}
+
+.shared-post {
+	margin-left: 30px;
+}
